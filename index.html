@@ -49,7 +49,7 @@ canvas{width:100%;max-width:520px;border-radius:16px;border:3px solid var(--ink)
 <div id="tqb" class="hide"><div id="tqt"></div><div id="tops"></div></div>
 <div id="tfb" style="min-height:2.6rem;font-weight:800"></div><div class="row"><button id="mbtn" class="mb" onclick="tmute()">🔊</button></div></div>
 <div id="svt" class="card hide"><div id="sinfo" style="font-weight:700"></div><canvas id="scv" width="360" height="260"></canvas>
-<p style="margin:4px 0;font-size:.85rem">Pick a weapon, then tap a desk to place it · ជ្រើសអាវុធ ហើយចុចលើតុ</p><div id="swb" class="row" style="margin-top:0"></div>
+<p style="margin:4px 0;font-size:.85rem">Answer 3 questions to start a wave! Tap a desk to place your weapon · tap a weapon again to upgrade it ⬆️ · ឆ្លើយ ៣ សំណួរ ដើម្បីចាប់ផ្តើម</p><div id="swb" class="row" style="margin-top:0"></div>
 <div id="sbar" class="hide"><div class="tb"><div id="bar5" style="height:100%;background:var(--bad);width:100%"></div></div></div>
 <div id="sqb" class="hide"><div id="sqt"></div><div id="sops"></div></div>
 <div id="sfb" style="min-height:2.6rem;font-weight:800"></div><div class="row"><button class="mb" onclick="tmute()">🔊</button></div></div>
@@ -180,7 +180,7 @@ function musicStart(){musicStop();if(MUTE)return;try{const a=ac();MB=a.createGai
 function musicStop(){clearInterval(MS);if(MB){try{MB.disconnect()}catch(e){}MB=null}}
 function tmute(){MUTE=!MUTE;document.querySelectorAll('.mb').forEach(b=>b.textContent=MUTE?'🔇':'🔊');if(MUTE)musicStop();else if(Sv&&!Sv.over)tenseStart();else if(Tt&&!Tt.over)musicStart()}
 const tfit=(m,x,y)=>m.every((r,j)=>r.every((v,i)=>!v||(x+i>=0&&x+i<10&&y+j<16&&!Tt.b[y+j][x+i])));
-function startTet(){$('again').onclick=startTet;Tt={b:Array.from({length:16},()=>Array(10).fill(0)),ph:'q',st:0,wr:0,ok:0,lines:0,earn:0,miss:[],last:-1,left:CFG.tetRound,over:false,busy:false,acc:0};
+function startTet(){$('again').onclick=startTet;Tt={b:Array.from({length:16},()=>Array(10).fill(0)),ph:'q',n:0,st:0,wr:0,ok:0,lines:0,earn:0,miss:[],last:-1,left:CFG.tetRound,over:false,busy:false,acc:0};
  view('tet');clearInterval(TL);musicStart();tSpawn();tAsk();TL=setInterval(tTick,100)}
 function tSpawn(){const i=R(0,6);Tt.p={m:TP[i],c:i+1,x:3,y:0};if(!tfit(Tt.p.m,3,0))tEnd()}
 function tAdd(e){Tt.earn+=e;D.p+=e;save();hud()}
@@ -189,13 +189,13 @@ function tAsk(){const s=Tt;if(!s||s.over)return;s.ph='q';s.busy=false;s.qt=CFG.q
  q.o.forEach(o=>{const b=document.createElement('button');b.textContent=o;b.onclick=()=>tAns(o);$('tops').appendChild(b)});tDraw()}
 function tAns(o){const s=Tt;if(!s||s.busy||s.over)return;s.busy=true;const q=s.q,ok=o===q.a;
  [...$('tops').children].forEach(b=>{b.disabled=true;if(b.textContent===q.a)b.classList.add('ok');else if(b.textContent===o)b.classList.add('no')});
- if(ok){right();s.ok++;s.st++;tAdd(CFG.ok);setTimeout(s.st%3===0?tPlay:tAsk,700)}
+ if(ok){right();s.ok++;s.st++;s.n++;tAdd(CFG.ok);if(s.n>=3){s.n=0;setTimeout(tPlay,700)}else setTimeout(tAsk,700)}
  else{wrong();s.st=0;s.wr++;s.miss.push(q);$('tfb').innerHTML='✅ '+esc(q.a)+'<br><small>'+esc(q.w)+' · ⚡ faster!</small>';setTimeout(tAsk,2400)}}
-function tPlay(){const s=Tt;if(!s||s.over)return;s.ph='p';s.plMax=s.pl=CFG.tetPlay+Math.min(s.st/3-1,4)*CFG.tetBonus;s.acc=0;$('tqb').classList.add('hide');$('tpb').classList.remove('hide');toast('🔥 '+s.pl+'s of play!');tDraw()}
+function tPlay(){const s=Tt;if(!s||s.over)return;s.ph='p';s.plMax=s.pl=CFG.tetPlay+Math.min(Math.max(0,Math.floor(s.st/3)-1),4)*CFG.tetBonus;s.acc=0;$('tqb').classList.add('hide');$('tpb').classList.remove('hide');toast('🔥 '+s.pl+'s of play!');tDraw()}
 function tTick(){const s=Tt;if(!s||s.over)return;if(s.ph==='p')s.left-=.1;if(s.left<=0)return tEnd();
  if(s.ph==='p'){s.pl-=.1;$('bar3').style.width=Math.max(0,s.pl/s.plMax*100)+'%';s.acc+=100;if(s.acc>=Math.max(140,650-70*s.wr)){s.acc=0;tDown()}if(s.pl<=0&&!s.over)tAsk()}
  
- const m=Math.max(0,Math.ceil(s.left)),t=`⏱ ${Math.floor(m/60)}:${String(m%60).padStart(2,'0')} · ⭐ ${s.earn} · ✅ ${s.st%3}/3 · 🧱 ${s.lines}`;if($('tinfo').textContent!==t)$('tinfo').textContent=t}
+ const m=Math.max(0,Math.ceil(s.left)),t=`⏱ ${Math.floor(m/60)}:${String(m%60).padStart(2,'0')} · ⭐ ${s.earn} · ✅ ${s.n}/3 · 🧱 ${s.lines}`;if($('tinfo').textContent!==t)$('tinfo').textContent=t}
 function tmv(d){const s=Tt;if(!s||s.ph!=='p'||s.over)return;if(tfit(s.p.m,s.p.x+d,s.p.y))s.p.x+=d;tDraw()}
 function trot(){const s=Tt;if(!s||s.ph!=='p'||s.over)return;const m=s.p.m[0].map((_,i)=>s.p.m.map(r=>r[i]).reverse());for(const k of[0,-1,1,-2,2])if(tfit(m,s.p.x+k,s.p.y)){s.p.m=m;s.p.x+=k;break}tDraw()}
 function tdn(){if(Tt&&Tt.ph==='p'&&!Tt.over)tDown()}
@@ -219,12 +219,12 @@ document.addEventListener('keydown',e=>{const s=Tt;if(!s||s.over||s.ph!=='p'||$(
  cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',()=>{dg=false;if(P_&&P_.aim)draw({})})})();
 // ===== Student vs Teacher: answer to earn ink, place weapons, 3 correct = 30s battle =====
 let Sv=null,SL=null;const scx=$('scv').getContext('2d');
-const SW=[['✏️',1,1.2,1,4,'Pen shooter'],['📏',2,1.8,3,4,'Ruler thrower'],['🔫',3,.6,1,4,'Paper blaster'],['📚',1,0,0,12,'Book wall']],SB={'✏️':'🔹','📏':'📏','🔫':'⚪'};
+const SW=[['✏️',1,1.2,1,4,'Pen shooter'],['📏',2,1.8,3,4,'Ruler thrower'],['🔫',3,.6,1,4,'Paper blaster'],['📚',1,0,0,12,'Book wall'],['🔱',3,1.4,1,4,'Triple shooter (3 lanes)']],SB={'✏️':'🔹','📏':'📏','🔫':'⚪','🔱':'🔸'};
 const sX=c=>50+62*c,sY=l=>30+56*l;
 function tenseStart(){musicStop();if(MUTE)return;try{const a=ac();MB=a.createGain();MB.gain.value=.5;MB.connect(a.destination);const loop=()=>{const w=Sv?Sv.wave:0,b=Math.max(.28,.5-w*.04);tone.bus=MB;
  for(let i=0;i<8;i++){tone(i%4===3?65:55,i*b,b*.9,.1,'sawtooth');if(i%2===0)tone([220,262,311,330][i/2%4|0]*(1+w*.03),i*b,b*.8,.05,'square')}
  tone(220,0,8*b,.04,'triangle');tone(311,0,8*b,.03,'triangle');if(w>=2)for(let i=0;i<16;i++)tone(880,i*b/2,.05,.03,'sine');tone.bus=null;MS=setTimeout(loop,8*b*1000)};loop()}catch(e){}}
-function startSvt(){$('again').onclick=startSvt;Sv={ph:'q',st:0,ink:1,sel:0,lives:D.u.includes('🍎')?4:3,wave:0,pl:0,plMax:CFG.svtPlay,ws:[],ts:[],bs:[],sp:1,bo:{},kills:0,earn:0,ok:0,miss:[],last:-1,over:false,busy:false};
+function startSvt(){$('again').onclick=startSvt;Sv={ph:'q',n:0,st:0,ink:1,sel:0,lives:D.u.includes('🍎')?4:3,wave:0,pl:0,plMax:CFG.svtPlay,ws:[],ts:[],bs:[],sp:1,nl:R(0,3),bo:{},kills:0,earn:0,ok:0,miss:[],last:-1,over:false,busy:false};
  view('svt');clearInterval(SL);tenseStart();sBuild();sAsk();SL=setInterval(sTick,50)}
 function sBuild(){const b=$('swb');b.innerHTML='';SW.forEach((w,i)=>{const e=document.createElement('button');e.innerHTML=w[0]+'<span class="km">'+w[1]+' ink</span>';e.onclick=()=>{Sv.sel=i;sBuild();toast(w[5]+' · '+w[1]+' ink')};if(Sv.sel===i)e.style.outline='4px solid var(--accent)';b.appendChild(e)})}
 function sAdd(e){Sv.earn+=e;D.p+=e;save();hud()}
@@ -233,31 +233,32 @@ function sAsk(){const s=Sv;if(!s||s.over)return;s.ph='q';s.busy=false;const g=GE
  q.o.forEach(o=>{const b=document.createElement('button');b.textContent=o;b.onclick=()=>sAns(o);$('sops').appendChild(b)})}
 function sAns(o){const s=Sv;if(!s||s.busy||s.over)return;s.busy=true;const q=s.q,ok=o===q.a;
  [...$('sops').children].forEach(b=>{b.disabled=true;if(b.textContent===q.a)b.classList.add('ok');else if(b.textContent===o)b.classList.add('no')});
- if(ok){right();s.ok++;s.st++;s.ink++;sAdd(CFG.ok);setTimeout(s.st%3===0?sBattle:sAsk,700)}
- else{wrong();s.st=0;s.miss.push(q);$('sfb').innerHTML='✅ '+esc(q.a)+'<br><small>'+esc(q.w)+'</small>';setTimeout(sAsk,2400)}}
+ if(ok){right();s.ok++;s.n++;s.ink++;sAdd(CFG.ok);if(s.n>=3){s.n=0;setTimeout(sBattle,700)}else setTimeout(sAsk,700)}
+ else{wrong();s.miss.push(q);$('sfb').innerHTML='✅ '+esc(q.a)+'<br><small>'+esc(q.w)+'</small>';setTimeout(sAsk,2400)}}
 function sBattle(){const s=Sv;if(!s||s.over)return;s.wave++;s.ph='p';s.pl=s.plMax;$('sqb').classList.add('hide');$('sbar').classList.remove('hide');toast('🌊 Wave '+s.wave+'! Teachers incoming!')}
 function sTick(){const s=Sv;if(!s||s.over)return;const dt=.05;
  if(s.ph==='p'){
-  s.sp-=dt;if(s.sp<=0){s.sp=Math.max(.9,2.6-s.wave*.2);const hp=3+Math.floor(s.wave*1.2);s.ts.push({x:370,l:R(0,3),hp,m:hp,e:P(['👩‍🏫','👨‍🏫']),v:10+s.wave*2+R(0,4)});
+  s.sp-=dt;if(s.sp<=0){s.sp=Math.max(.9,2.6-s.wave*.2);const hp=3+Math.floor(s.wave*1.2);const run=s.wave>=2&&R(1,4)===1,h=run?Math.max(2,hp-2):hp;s.ts.push({x:370,l:s.nl,hp:h,m:h,e:run?'🏃':P(['👩‍🏫','👨‍🏫']),v:run?24+s.wave*2:10+s.wave*2+R(0,4)});s.nl=R(0,3);
    if(s.wave%3===0&&!s.bo[s.wave]){s.bo[s.wave]=1;const h=15+s.wave*2;s.ts.push({x:370,l:R(0,3),hp:h,m:h,e:'🧑‍💼',v:8})}}
-  s.ws.forEach(w=>{const d=SW[w.i];if(d[2]>0){w.cd-=dt;if(w.cd<=0&&s.ts.some(t=>t.l===w.l&&t.x>w.x)){w.cd=d[2];s.bs.push({x:w.x+16,l:w.l,d:d[3]+(w.i===0&&D.u.includes('🖋️')?1:0),e:SB[d[0]]})}}});
+  s.ws.forEach(w=>{const d=SW[w.i];if(d[2]>0){w.cd-=dt;const ls=w.i===4?[w.l-1,w.l,w.l+1].filter(l=>l>=0&&l<4):[w.l];if(w.cd<=0&&s.ts.some(t=>ls.includes(t.l)&&t.x>w.x)){w.cd=d[2]*(1-.2*(w.lv-1));ls.forEach(l=>s.bs.push({x:w.x+16,l,d:d[3]+(w.lv-1)+(w.i===0&&D.u.includes('🖋️')?1:0),e:SB[d[0]]}))}}});
   s.bs.forEach(b=>{b.x+=200*dt;const t=s.ts.find(t=>t.l===b.l&&Math.abs(t.x-b.x)<16);if(t){t.hp-=b.d;b.x=999;if(t.hp<=0){t.dead=1;s.kills++;sAdd(3);tone(520,0,.1,.1,'square',900)}}});
   s.bs=s.bs.filter(b=>b.x<370);s.ts=s.ts.filter(t=>!t.dead);
   s.ts.forEach(t=>{const w=s.ws.find(w=>w.l===t.l&&w.x<t.x&&t.x-w.x<26);if(w){w.hp-=dt*1.5;if(w.hp<=0)w.dead=1}else t.x-=t.v*dt;if(t.x<18){t.dead=1;s.lives--;wrong();toast('💔 A teacher got in!')}});
   s.ws=s.ws.filter(w=>!w.dead);s.ts=s.ts.filter(t=>!t.dead);
   if(s.lives<=0)return sEnd(false);
   s.pl-=dt;$('bar5').style.width=Math.max(0,s.pl/s.plMax*100)+'%';if(s.pl<=0){if(s.wave>=CFG.svtBatches)return sEnd(true);sAsk()}}
- const t=`❤️ ${s.lives} · 🖊️ ${s.ink} ink · 🌊 ${s.wave}/${CFG.svtBatches} · ⭐ ${s.earn} · ✅ ${s.st%3}/3`;if($('sinfo').textContent!==t)$('sinfo').textContent=t;sDraw()}
-function sDraw(){const s=Sv,c=scx;c.fillStyle='#b9d9ff';c.fillRect(0,0,360,30);c.font='22px serif';c.textAlign='left';c.fillText('🏫 Classroom · ថ្នាក់រៀន',6,23);
- for(let l=0;l<4;l++){c.fillStyle=l%2?'#dccb94':'#e8d9a8';c.fillRect(0,sY(l),360,56);c.fillStyle='rgba(0,0,0,.08)';for(let k=0;k<5;k++)c.fillRect(sX(k)-24,sY(l)+8,48,40)}
+ const t=`❤️ ${s.lives} · 🖊️ ${s.ink} ink · 🌊 ${s.wave}/${CFG.svtBatches} · ⭐ ${s.earn} · ✅ ${s.n}/3 → wave`;if($('sinfo').textContent!==t)$('sinfo').textContent=t;sDraw()}
+function sDraw(){const s=Sv,c=scx;c.fillStyle='#b9d9ff';c.fillRect(0,0,360,30);c.font='15px serif';c.textAlign='left';c.fillStyle='#22304a';c.fillText('🏫 Teachers come in from the RIGHT ⬅️',6,21);
+ for(let l=0;l<4;l++){c.fillStyle=l%2?'#dccb94':'#e8d9a8';c.fillRect(0,sY(l),360,56);c.fillStyle='rgba(0,0,0,.08)';for(let k=0;k<5;k++)c.fillRect(sX(k)-24,sY(l)+8,48,40);c.font='18px serif';c.textAlign='right';c.fillStyle='rgba(150,0,0,.4)';c.fillText('◀',358,sY(l)+34)}
  c.fillStyle='#8a5a2b';c.fillRect(0,30,14,224);c.textAlign='center';
- s.ws.forEach(w=>{c.font='34px serif';c.fillText(SW[w.i][0],w.x,sY(w.l)+40);c.fillStyle='#e5484d';c.fillRect(w.x-14,sY(w.l)+46,28*w.hp/SW[w.i][4],4)});
+ if(s.ph==='p'&&s.sp<1&&Math.floor(Date.now()/200)%2){c.fillStyle='rgba(229,72,77,.45)';c.fillRect(250,sY(s.nl),110,56);c.font='28px serif';c.textAlign='center';c.fillText('❗',335,sY(s.nl)+38)}
+ s.ws.forEach(w=>{c.font='34px serif';c.fillText(SW[w.i][0],w.x,sY(w.l)+40);c.fillStyle='#e5484d';c.fillRect(w.x-14,sY(w.l)+46,28*w.hp/w.mh,4);if(w.lv>1){c.font='11px serif';c.fillStyle='#c97a00';c.fillText('★'.repeat(w.lv-1),w.x,sY(w.l)+13)}});
  s.bs.forEach(b=>{c.font='16px serif';c.fillText(b.e,b.x,sY(b.l)+32)});
  s.ts.forEach(t=>{c.font=(t.e==='🧑‍💼'?'44px':'38px')+' serif';c.fillText(t.e,t.x,sY(t.l)+40);c.fillStyle='#000';c.fillRect(t.x-16,sY(t.l)+3,32,5);c.fillStyle='#e5484d';c.fillRect(t.x-16,sY(t.l)+3,32*Math.max(0,t.hp)/t.m,5)})}
 $('scv').addEventListener('pointerdown',e=>{const s=Sv;if(!s||s.over)return;const r=$('scv').getBoundingClientRect(),x=(e.clientX-r.left)*360/r.width,y=(e.clientY-r.top)*260/r.height,l=Math.floor((y-30)/56),c=Math.round((x-50)/62);
- if(l<0||l>3||c<0||c>4||Math.abs(x-sX(c))>31)return;const d=SW[s.sel];if(s.ws.some(w=>w.l===l&&w.c===c))return toast('Desk is taken · តុមានហើយ');
+ if(l<0||l>3||c<0||c>4||Math.abs(x-sX(c))>31)return;const d=SW[s.sel],ex=s.ws.find(w=>w.l===l&&w.c===c);if(ex){if(ex.lv>=3)return toast('⭐ Max level!');const uc=ex.lv+1;if(s.ink<uc)return toast('Upgrade needs '+uc+' ink · ត្រូវការ '+uc);s.ink-=uc;ex.lv++;ex.mh=SW[ex.i][4]+(ex.i===3?6*(ex.lv-1):0);ex.hp=ex.mh;tone(880,0,.12,.14,'sine');tone(1175,.1,.2,.12,'sine');toast('⬆️ Level '+ex.lv+': stronger + faster!');return sDraw()}
  if(s.ink<d[1])return toast('Need '+(d[1]-s.ink)+' more ink — answer questions! · ត្រូវការទឹកថ្នាំបន្ថែម');
- s.ink-=d[1];s.ws.push({c,l,x:sX(c),i:s.sel,hp:d[4],cd:.4});tone(660,0,.1,.12,'sine');sDraw()});
+ s.ink-=d[1];s.ws.push({c,l,x:sX(c),i:s.sel,hp:d[4],mh:d[4],lv:1,cd:.4});tone(660,0,.1,.12,'sine');sDraw()});
 function sEnd(win){const s=Sv;if(!s||s.over)return;s.over=true;clearInterval(SL);musicStop();if(win)sAdd(30);view('end');
  $('endT').textContent=(win?'🎉 Class dismissed! You won! · ':'The teachers got in! · ')+`Kills: ${s.kills} · Correct: ${s.ok} · Earned ⭐ ${s.earn}`;
  $('miss').innerHTML=s.miss.length?'<h3>Review · ពិនិត្យឡើងវិញ</h3>'+s.miss.slice(0,6).map(q=>`<div class="ms"><b>${esc(q.q)}</b><br>✅ ${esc(q.a)}<br><small>${esc(q.w)}</small></div>`).join(''):'<p>🎉 Perfect! No mistakes!</p>'}
